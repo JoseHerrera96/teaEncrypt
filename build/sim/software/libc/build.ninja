@@ -4454,7 +4454,7 @@ build newlib/libm.a: STATIC_LINKER newlib/libm.a.p/empty.c.o
  LINK_ARGS = csrD
 
 build newlib/libc_duplicates: CUSTOM_COMMAND newlib/libc.a | /usr/bin/riscv64-linux-gnu-gcc-nm /workspace/build/sim/software/picolibc_src/scripts/duplicate-names
- COMMAND = /workspace/build/sim/software/picolibc_src/scripts/duplicate-names /usr/bin/riscv64-linux-gnu-gcc-nm newlib/libc.a newlib/libc_duplicates
+ COMMAND = /bin/sh /workspace/build/sim/software/picolibc_src/scripts/duplicate-names /usr/bin/riscv64-linux-gnu-gcc-nm newlib/libc.a newlib/libc_duplicates
  description = Generating$ newlib/libc_duplicates$ with$ a$ custom$ command
 
 # Test rules
