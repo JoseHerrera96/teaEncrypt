@@ -10,10 +10,27 @@ unsigned char* data_input(void)
     unsigned char *temp_chain;
     int spc_count = 0;
     int msg_len = 0;
-
-    printf("Input data to cipher:\n");
-    fgets(input_chain, sizeof(input_chain) , stdin);
-
+    
+    printf("Input data to cipher:\n: ");
+    fflush(stdout);
+    
+    // Leer caracteres hasta Enter o fin de buffer
+    int c;
+    size_t pos = 0;
+    
+    while (pos < sizeof(input_chain) - 1) {
+        c = getchar();
+        if (c == '\n' || c == EOF)
+            break;
+        
+        input_chain[pos++] = c;
+        // Imprimir el carácter para mostrar feedback
+        putchar(c);
+        fflush(stdout);
+    }
+    input_chain[pos] = '\0';
+    
+    // Calcular longitud del mensaje
     for (size_t i = 0; input_chain[i] != '\0'; i++)
     {
         if (input_chain[i] == ' ') {
