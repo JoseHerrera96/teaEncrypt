@@ -8,6 +8,7 @@ void sel_key(uint32_t key[4]){
     for (size_t i = 0; i < 4; i++)
     {
         printf("Enter new key: ");
+        fflush(stdout);
         scanf("%x", &key[i]);
     }
 }
