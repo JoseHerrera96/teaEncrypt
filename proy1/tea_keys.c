@@ -10,7 +10,7 @@ void sel_key(uint32_t key[4]){
     for (size_t i = 0; i < 4; i++){
         size_t pos = 0;
         
-        printf("Enter new key part %zu (hex):\n ", i+1);
+        printf("\nEnter new key part %zu (hex):\n ", i+1);
         fflush(stdout);
         
         // Limpiar el buffer
@@ -30,6 +30,6 @@ void sel_key(uint32_t key[4]){
         buffer[pos] = '\0';
         
         // Convertir a valor hexadecimal
-        key[i] = strtoul(buffer, NULL, 8);
+        key[i] = strtoul(buffer, NULL, 16);
     }
 }

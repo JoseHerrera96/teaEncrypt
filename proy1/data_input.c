@@ -11,7 +11,7 @@ unsigned char* data_input(void)
     int spc_count = 0;
     int msg_len = 0;
     
-    printf("Input data to cipher:\n ");
+    printf("\nInput data to cipher:\n ");
     fflush(stdout);
     
     // Leer caracteres hasta Enter o fin de buffer

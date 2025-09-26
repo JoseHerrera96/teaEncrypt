@@ -86,12 +86,8 @@ static void help(void)
 	puts("reboot             - Reboot CPU");
 	puts("helloc             - Hello C");
 	puts("add                - Adds two integer values");
-	puts("data				 - Change data");
-	puts("key				 - Change key for encryptation");
-	puts("padding			 - Show padded data");
-	puts("unpadding			 - Show unpadded data");
-	puts("encrypt			 - Encrypt data");
-	puts("decrypt			 - Decrypt data");
+	puts("encrypt            - Proceso completo de encriptacion (data->padding->key->encrypt)");
+	puts("decrypt            - Proceso completo de desencriptacion (data->key->decrypt->unpadding)");
 }
 
 /*-----------------------------------------------------------------------*/
@@ -188,15 +184,100 @@ static void del_pad_cmd(void)
 extern void tea_encrypt_handler(unsigned char *pad_chain, unsigned char *encr_chain, size_t pad_len, uint32_t key[4]);
 static void encrypt_cmd(void)
 {
+	// Flujo completo: data->padding->key->encryptation->mostrar resultado
+	printf("=== PROCESO DE ENCRIPTACION ===\n");
+	
+	// 1. Obtener datos
+	printf("1. Ingrese los datos a cifrar:\n");
+	if (chain) {free(chain);}
+	chain = data_input();
+	printf("Datos ingresados: %s\n", chain);
+	
+	// 2. Aplicar padding
+	printf("\n2. Aplicando padding PKCS#7...\n");
+	if (pad_chain) {free(pad_chain);}
+	pad_len = add_pkcs7(chain, strlen((char*)chain), block_size, &pad_chain);
+	printf("Datos con padding:\n");
+	for (size_t i = 0; i < pad_len; i++) {
+		printf("%02X ", pad_chain[i]);
+		if ((i+1) % 8 == 0){printf("\n");}
+	}
+	printf("\n");
+	
+	// 3. Configurar clave
+	printf("\n3. Configuracion de clave:\n");
+	printf("Clave actual: %08X %08X %08X %08X\n", key[3], key[2], key[1], key[0]);
+	printf("¿Desea cambiar la clave? (y/n): ");
+	fflush(stdout);
+	char response = getchar();
+	if (response == 'y' || response == 'Y') {
+		sel_key(key);
+		printf("Nueva clave: %08X %08X %08X %08X\n", key[3], key[2], key[1], key[0]);
+	}
+	
+	// 4. Encriptar
+	printf("\n4. Encriptando datos...\n");
+	if (encr_chain) {free(encr_chain);}
 	encr_chain = malloc(pad_len);
 	tea_encrypt_handler(pad_chain, encr_chain, pad_len, key);
+	
+	// 5. Mostrar resultado
+	printf("\n=== RESULTADO DE ENCRIPTACION ===\n");
+	printf("Datos cifrados (hex):\n");
+	for (size_t i = 0; i < pad_len; i++) {
+		printf("%02X ", encr_chain[i]);
+		if ((i+1) % 8 == 0){printf("\n");}
+	}
+	printf("\nEncriptacion completada exitosamente!\n");
 }
 
 extern void tea_decrypt_handler(unsigned char *encr_chain, unsigned char *decr_chain, size_t pad_len, uint32_t key[4]);
 static void decrypt_cmd(void)
 {
+	// Flujo completo: data->key->decryptation->unpadding->mostrar resultado
+	printf("=== PROCESO DE DESENCRIPTACION ===\n");
+	
+	// Verificar que hay datos encriptados
+	if (!encr_chain) {
+		printf("Error: No hay datos encriptados disponibles.\n");
+		printf("Primero debe ejecutar el comando 'encrypt'.\n");
+		return;
+	}
+	
+	// 1. Mostrar datos encriptados
+	printf("1. Datos encriptados a descifrar:\n");
+	for (size_t i = 0; i < pad_len; i++) {
+		printf("%02X ", encr_chain[i]);
+		if ((i+1) % 8 == 0){printf("\n");}
+	}
+	printf("\n");
+	
+	// 2. Configurar clave
+	printf("\n2. Configuracion de clave:\n");
+	printf("Clave actual: %08X %08X %08X %08X\n", key[3], key[2], key[1], key[0]);
+	printf("¿Desea cambiar la clave? (y/n): ");
+	fflush(stdout);
+	char response = getchar();
+	if (response == 'y' || response == 'Y') {
+		sel_key(key);
+		printf("Nueva clave: %08X %08X %08X %08X\n", key[3], key[2], key[1], key[0]);
+	}
+	
+	// 3. Desencriptar
+	printf("\n3. Desencriptando datos...\n");
+	if (decr_chain) {free(decr_chain);}
 	decr_chain = malloc(pad_len);
 	tea_decrypt_handler(encr_chain, decr_chain, pad_len, key);
+	
+	// 4. Remover padding
+	printf("\n4. Removiendo padding PKCS#7...\n");
+	unpad_len = del_pkcs7(decr_chain, pad_len, block_size);
+	decr_chain[unpad_len] = '\0';
+	
+	// 5. Mostrar resultado
+	printf("\n=== RESULTADO DE DESENCRIPTACION ===\n");
+	printf("Datos descifrados: %s\n", decr_chain);
+	printf("Desencriptacion completada exitosamente!\n");
 }
 
 //
@@ -212,7 +293,9 @@ static void console_service(void)
 
 	str = readstr();
 	if(str == NULL) return;
+
 	token = get_token(&str);
+
 	if(strcmp(token, "help") == 0)
 		help();
 	else if(strcmp(token, "reboot") == 0)
@@ -221,18 +304,11 @@ static void console_service(void)
 		helloc_cmd();
 	else if(strcmp(token, "add") == 0)
 		add_cmd();
-	else if(strcmp(token, "data") == 0)
-		data_cmd();
-	else if(strcmp(token, "key") == 0)
-		key_cmd();
-	else if(strcmp(token, "padding") == 0)
-		add_pad_cmd();
-	else if(strcmp(token, "unpadding") == 0)
-		del_pad_cmd();
 	else if(strcmp(token, "encrypt") == 0)
 		encrypt_cmd();
 	else if(strcmp(token, "decrypt") == 0)
 		decrypt_cmd();
+
 	prompt();
 }
 
