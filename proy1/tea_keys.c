@@ -30,6 +30,6 @@ void sel_key(uint32_t key[4]){
         buffer[pos] = '\0';
         
         // Convertir a valor hexadecimal
-        key[i] = strtoul(buffer, NULL, 8);
+        key[i] = strtoul(buffer, NULL, 16);
     }
 }
