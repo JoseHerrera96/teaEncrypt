@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <libbase/uart.h>
 
 void sel_key(uint32_t key[4]);
 void sel_key(uint32_t key[4]){
@@ -16,17 +17,35 @@ void sel_key(uint32_t key[4]){
         // Limpiar el buffer
         memset(buffer, 0, sizeof(buffer));
         
-        // Leer caracteres hasta Enter o fin de buffer
+        // Leer caracteres con manejo de backspace
         while (pos < sizeof(buffer) - 1) {
-            c = getchar();
-            if (c == '\n' || c == EOF)
-                break;
-            
-            buffer[pos++] = c;
-            // Imprimir el carácter para mostrar feedback
-            putchar(c);
-            fflush(stdout);
+            if(readchar_nonblock()) {
+                c = getchar();
+                
+                switch(c) {
+                    case 0x7f:  // DEL
+                    case 0x08:  // Backspace
+                        if(pos > 0) {
+                            pos--;
+                            fputs("\x08 \x08", stdout);  // Borrar carácter en pantalla
+                            fflush(stdout);
+                        }
+                        break;
+                    case '\r':
+                    case '\n':
+                        goto key_input_complete;
+                    case 0x07:  // Bell - ignorar
+                        break;
+                    default:
+                        buffer[pos++] = c;
+                        putchar(c);  // Mostrar carácter
+                        fflush(stdout);
+                        break;
+                }
+            }
         }
+        
+key_input_complete:
         buffer[pos] = '\0';
         
         // Convertir a valor hexadecimal
