@@ -191,7 +191,7 @@ static void encrypt_cmd(void)
 	printf("1. Ingrese los datos a cifrar:\n");
 	if (chain) {free(chain);}
 	chain = data_input();
-	printf("Datos ingresados: %s\n", chain);
+	printf("\nDatos ingresados\n");
 	
 	// 2. Aplicar padding
 	printf("\n2. Aplicando padding PKCS#7...\n");
