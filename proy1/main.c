@@ -237,20 +237,68 @@ static void decrypt_cmd(void)
 	// Flujo completo: data->key->decryptation->unpadding->mostrar resultado
 	printf("=== PROCESO DE DESENCRIPTACION ===\n");
 	
-	// Verificar que hay datos encriptados
-	if (!encr_chain) {
-		printf("Error: No hay datos encriptados disponibles.\n");
-		printf("Primero debe ejecutar el comando 'encrypt'.\n");
+	// 1. Obtener datos encriptados
+	printf("1. Ingrese los datos encriptados a descifrar:\n");
+	printf("Opciones:\n");
+	printf("  [1] Usar datos de encriptacion anterior\n");
+	printf("  [2] Ingresar nuevos datos encriptados\n");
+	printf("Seleccione opcion (1/2): ");
+	fflush(stdout);
+	
+	char option = getchar();
+	
+	if (option == '2') {
+		// Ingresar nuevos datos encriptados
+		printf("\nIngrese los datos encriptados (en hexadecimal, ej: 1FC321DA...):\n");
+		if (encr_chain) {free(encr_chain);}
+		
+		// Usar data_input para obtener la cadena hex
+		unsigned char *hex_input = data_input();
+		size_t hex_len = strlen((char*)hex_input);
+		
+		// Convertir de hex string a bytes
+		if (hex_len % 2 != 0) {
+			printf("Error: La cadena hexadecimal debe tener un numero par de caracteres.\n");
+			free(hex_input);
+			return;
+		}
+		
+		pad_len = hex_len / 2;
+		encr_chain = malloc(pad_len);
+		
+		// Convertir cada par de caracteres hex a byte
+		for (size_t i = 0; i < pad_len; i++) {
+			char hex_byte[3] = {hex_input[i*2], hex_input[i*2+1], '\0'};
+			encr_chain[i] = (unsigned char)strtoul(hex_byte, NULL, 16);
+		}
+		
+		free(hex_input);
+		
+		printf("Datos encriptados ingresados:\n");
+		for (size_t i = 0; i < pad_len; i++) {
+			printf("%02X ", encr_chain[i]);
+			if ((i+1) % 8 == 0){printf("\n");}
+		}
+		printf("\n");
+		
+	} else if (option == '1') {
+		// Verificar que hay datos encriptados previos
+		if (!encr_chain) {
+			printf("Error: No hay datos encriptados disponibles.\n");
+			printf("Primero debe ejecutar el comando 'encrypt' o seleccionar opcion 2.\n");
+			return;
+		}
+		
+		printf("Usando datos de encriptacion anterior:\n");
+		for (size_t i = 0; i < pad_len; i++) {
+			printf("%02X ", encr_chain[i]);
+			if ((i+1) % 8 == 0){printf("\n");}
+		}
+		printf("\n");
+	} else {
+		printf("Opcion invalida. Cancelando desencriptacion.\n");
 		return;
 	}
-	
-	// 1. Mostrar datos encriptados
-	printf("1. Datos encriptados a descifrar:\n");
-	for (size_t i = 0; i < pad_len; i++) {
-		printf("%02X ", encr_chain[i]);
-		if ((i+1) % 8 == 0){printf("\n");}
-	}
-	printf("\n");
 	
 	// 2. Configurar clave
 	printf("\n2. Configuracion de clave:\n");
