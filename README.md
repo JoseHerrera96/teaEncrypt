@@ -1,3 +1,5 @@
+Repositorio de referencia que monta un entorno reproducible con Docker/Makefiles para desarrollar, simular en LiteX y probar la implementación del cifrado TEA sobre una CPU RISC-V.
+
 # EL3310 Proyecto 1
 
 Este repositorio provee todo lo necesario para el desarrollo del proyecto 1 del curso EL3310 Diseño de Sistemas Digitales.
